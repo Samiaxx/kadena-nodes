@@ -4,9 +4,12 @@ import { useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-/* =========================
-   MOCK NODE DATA (v1)
-   ========================= */
+type Filters = {
+  region: string;
+  type: string;
+  status: string;
+};
+
 const nodes = [
   {
     id: 1,
@@ -16,7 +19,6 @@ const nodes = [
     region: "North America",
     chain: "Chain 1",
     type: "Validator",
-    version: "v1.12.3",
     status: "Online",
     latency: 42,
     uptime: "99.98%",
@@ -32,7 +34,6 @@ const nodes = [
     region: "Europe",
     chain: "Chain 2",
     type: "Full Node",
-    version: "v1.12.3",
     status: "Online",
     latency: 55,
     uptime: "99.91%",
@@ -48,7 +49,6 @@ const nodes = [
     region: "Asia",
     chain: "Chain 3",
     type: "RPC Node",
-    version: "v1.12.3",
     status: "Online",
     latency: 68,
     uptime: "99.87%",
@@ -58,10 +58,7 @@ const nodes = [
   },
 ];
 
-/* =========================
-   LEAFLET MAP COMPONENT
-   ========================= */
-export default function LeafletMap() {
+export default function LeafletMap({ filters }: { filters: Filters }) {
   useEffect(() => {
     const map = L.map("map", {
       center: [20, 0],
@@ -69,7 +66,6 @@ export default function LeafletMap() {
       worldCopyJump: true,
     });
 
-    /* Dark map tiles (Web3 style) */
     L.tileLayer(
       "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
       {
@@ -77,14 +73,18 @@ export default function LeafletMap() {
       }
     ).addTo(map);
 
-    /* =========================
-       NODE MARKERS + TOOLTIPS
-       ========================= */
-    nodes.forEach((node) => {
+    const filteredNodes = nodes.filter((node) => {
+      return (
+        (filters.region === "All" || node.region === filters.region) &&
+        (filters.type === "All" || node.type === filters.type) &&
+        (filters.status === "All" || node.status === filters.status)
+      );
+    });
+
+    filteredNodes.forEach((node) => {
       const marker = L.circleMarker([node.lat, node.lng], {
         radius: 7,
         color: "#4fd1c5",
-        weight: 2,
         fillColor: "#4fd1c5",
         fillOpacity: 0.9,
       }).addTo(map);
@@ -92,50 +92,31 @@ export default function LeafletMap() {
       marker.bindTooltip(
         `
         <div style="
-          font-family: Inter, sans-serif;
-          background: linear-gradient(180deg, #0c1220, #070b12);
-          color: #e6edf3;
-          padding: 10px 12px;
-          border-radius: 8px;
-          border: 1px solid #1f2937;
-          min-width: 220px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+          background:#0c1220;
+          color:#e6edf3;
+          padding:10px;
+          border-radius:8px;
+          border:1px solid #1f2937;
+          min-width:180px;
+          font-size:12px;
         ">
-          <div style="font-weight:600; color:#4fd1c5; margin-bottom:4px;">
-            ${node.name}
-          </div>
-
-          <div style="font-size:12px; color:#9aa4b2; margin-bottom:6px;">
-            ${node.city}, ${node.country} • ${node.region}
-          </div>
-
-          <div style="font-size:12px; line-height:1.6;">
-            <div>Chain: <b>${node.chain}</b></div>
-            <div>Type: <b>${node.type}</b></div>
-            <div>Version: <b>${node.version}</b></div>
-            <div>Status:
-              <b style="color:${node.status === "Online" ? "#22c55e" : "#ef4444"}">
-                ${node.status}
-              </b>
-            </div>
-            <div>Latency: <b>${node.latency} ms</b></div>
-            <div>Uptime: <b>${node.uptime}</b></div>
-            <div>Last seen: <b>${node.lastSeen}</b></div>
-          </div>
+          <strong style="color:#4fd1c5">${node.name}</strong><br/>
+          ${node.city}, ${node.country}<br/>
+          <hr style="border-color:#1f2937"/>
+          Type: ${node.type}<br/>
+          Status: <b style="color:#22c55e">${node.status}</b><br/>
+          Latency: ${node.latency} ms<br/>
+          Uptime: ${node.uptime}
         </div>
         `,
-        {
-          direction: "top",
-          sticky: true,
-          opacity: 1,
-        }
+        { sticky: true }
       );
     });
 
     return () => {
       map.remove();
     };
-  }, []);
+  }, [filters]);
 
   return <div id="map" style={{ width: "100%", height: "100%" }} />;
 }

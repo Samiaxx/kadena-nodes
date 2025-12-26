@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
-// Client-side only maps
+// Dynamic imports (client-side only)
 const LeafletMap = dynamic(() => import("../components/LeafletMap"), {
   ssr: false,
 });
@@ -15,6 +15,12 @@ const MapboxGlobe = dynamic(() => import("../components/MapboxGlobe"), {
 export default function Home() {
   const [view, setView] = useState<"map" | "globe">("map");
 
+  const [filters, setFilters] = useState({
+    region: "All",
+    type: "All",
+    status: "All",
+  });
+
   return (
     <main
       style={{
@@ -25,7 +31,7 @@ export default function Home() {
         flexDirection: "column",
       }}
     >
-      {/* Header */}
+      {/* HEADER */}
       <header
         style={{
           padding: "1rem",
@@ -72,9 +78,61 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Map Area */}
+      {/* FILTER BAR */}
+      {view === "map" && (
+        <div
+          style={{
+            display: "flex",
+            gap: "12px",
+            padding: "12px",
+            borderBottom: "1px solid #0e1629",
+            background: "#070b12",
+          }}
+        >
+          <select
+            value={filters.region}
+            onChange={(e) =>
+              setFilters({ ...filters, region: e.target.value })
+            }
+          >
+            <option>All</option>
+            <option>North America</option>
+            <option>Europe</option>
+            <option>Asia</option>
+          </select>
+
+          <select
+            value={filters.type}
+            onChange={(e) =>
+              setFilters({ ...filters, type: e.target.value })
+            }
+          >
+            <option>All</option>
+            <option>Validator</option>
+            <option>Full Node</option>
+            <option>RPC Node</option>
+          </select>
+
+          <select
+            value={filters.status}
+            onChange={(e) =>
+              setFilters({ ...filters, status: e.target.value })
+            }
+          >
+            <option>All</option>
+            <option>Online</option>
+            <option>Offline</option>
+          </select>
+        </div>
+      )}
+
+      {/* MAP / GLOBE AREA */}
       <section style={{ flex: 1 }}>
-        {view === "map" ? <LeafletMap /> : <MapboxGlobe />}
+        {view === "map" ? (
+          <LeafletMap filters={filters} />
+        ) : (
+          <MapboxGlobe />
+        )}
       </section>
     </main>
   );

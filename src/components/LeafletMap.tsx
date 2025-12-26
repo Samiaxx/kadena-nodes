@@ -68,18 +68,15 @@ export default function LeafletMap({ filters }: { filters: Filters }) {
 
     L.tileLayer(
       "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-      {
-        attribution: "© OpenStreetMap, © Carto",
-      }
+      { attribution: "© OpenStreetMap, © Carto" }
     ).addTo(map);
 
-    const filteredNodes = nodes.filter((node) => {
-      return (
+    const filteredNodes = nodes.filter(
+      (node) =>
         (filters.region === "All" || node.region === filters.region) &&
         (filters.type === "All" || node.type === filters.type) &&
         (filters.status === "All" || node.status === filters.status)
-      );
-    });
+    );
 
     filteredNodes.forEach((node) => {
       const marker = L.circleMarker([node.lat, node.lng], {
@@ -97,16 +94,18 @@ export default function LeafletMap({ filters }: { filters: Filters }) {
           padding:10px;
           border-radius:8px;
           border:1px solid #1f2937;
-          min-width:180px;
+          min-width:200px;
           font-size:12px;
         ">
           <strong style="color:#4fd1c5">${node.name}</strong><br/>
           ${node.city}, ${node.country}<br/>
           <hr style="border-color:#1f2937"/>
+          Chain: ${node.chain}<br/>
           Type: ${node.type}<br/>
           Status: <b style="color:#22c55e">${node.status}</b><br/>
           Latency: ${node.latency} ms<br/>
-          Uptime: ${node.uptime}
+          Uptime: ${node.uptime}<br/>
+          Last seen: ${node.lastSeen}
         </div>
         `,
         { sticky: true }

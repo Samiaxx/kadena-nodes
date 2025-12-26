@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
-// Dynamic imports (client-side only)
 const LeafletMap = dynamic(() => import("../components/LeafletMap"), {
   ssr: false,
 });
@@ -14,7 +13,6 @@ const MapboxGlobe = dynamic(() => import("../components/MapboxGlobe"), {
 
 export default function Home() {
   const [view, setView] = useState<"map" | "globe">("map");
-
   const [filters, setFilters] = useState({
     region: "All",
     type: "All",
@@ -78,6 +76,49 @@ export default function Home() {
         </div>
       </header>
 
+      {/* STATS BAR */}
+      {view === "map" && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: "12px",
+            padding: "12px",
+            borderBottom: "1px solid #0e1629",
+          }}
+        >
+          {[
+            { label: "Total Nodes", value: 3 },
+            { label: "Online", value: 3 },
+            { label: "Regions", value: 3 },
+            { label: "Avg Latency", value: "55 ms" },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              style={{
+                background: "#0c1220",
+                border: "1px solid #1f2937",
+                borderRadius: "8px",
+                padding: "10px",
+              }}
+            >
+              <div style={{ fontSize: "11px", color: "#9aa4b2" }}>
+                {stat.label}
+              </div>
+              <div
+                style={{
+                  fontSize: "18px",
+                  fontWeight: 600,
+                  color: "#4fd1c5",
+                }}
+              >
+                {stat.value}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* FILTER BAR */}
       {view === "map" && (
         <div
@@ -86,7 +127,6 @@ export default function Home() {
             gap: "12px",
             padding: "12px",
             borderBottom: "1px solid #0e1629",
-            background: "#070b12",
           }}
         >
           <select
@@ -126,7 +166,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* MAP / GLOBE AREA */}
+      {/* MAP / GLOBE */}
       <section style={{ flex: 1 }}>
         {view === "map" ? (
           <LeafletMap filters={filters} />

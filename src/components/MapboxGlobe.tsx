@@ -2,20 +2,15 @@
 
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
-
-interface NodeItem {
-  id: number;
-  lat: number;
-  lng: number;
-  name: string;
-  region: string;
-  status: string;
-}
+import type { NodeItem } from "@/data/nodes";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
-export default function MapboxGlobe({ nodes }: { nodes: NodeItem[] }) {
+type Props = {
+  nodes: NodeItem[];
+};
+
+export default function MapboxGlobe({ nodes }: Props) {
   const mapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -25,24 +20,24 @@ export default function MapboxGlobe({ nodes }: { nodes: NodeItem[] }) {
       container: mapRef.current,
       style: "mapbox://styles/mapbox/dark-v11",
       projection: "globe",
-      zoom: 1.5,
+      zoom: 1.2,
       center: [0, 20],
     });
 
     map.on("load", () => {
-      nodes.forEach((node) => {
-        const el = document.createElement("div");
-        el.style.width = "10px";
-        el.style.height = "10px";
-        el.style.borderRadius = "50%";
-        el.style.background =
-          node.status === "Online" ? "#00ff88" : "#ff4444";
+      map.setFog({
+        range: [-1, 2],
+        color: "rgba(0,0,0,0.25)",
+        highColor: "rgba(36,92,223,0.15)",
+        horizonBlend: 0.2,
+      });
 
-        new mapboxgl.Marker(el)
+      nodes.forEach((node) => {
+        new mapboxgl.Marker({ color: "#ff4d4f" })
           .setLngLat([node.lng, node.lat])
           .setPopup(
             new mapboxgl.Popup().setHTML(
-              `<strong>${node.name}</strong><br/>${node.region}<br/>${node.status}`
+              `<strong>${node.name}</strong><br/>${node.region}`
             )
           )
           .addTo(map);

@@ -2,44 +2,31 @@
 
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
-import { NodeItem } from "@/data/nodes";
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
-
-export default function MapboxGlobe({ nodes }: { nodes: NodeItem[] }) {
-  const mapRef = useRef<HTMLDivElement>(null);
+export default function MapboxGlobe() {
+  const mapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
 
+    mapboxgl.accessToken =
+      process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
+
+    if (!mapboxgl.accessToken) {
+      console.error("Mapbox token missing");
+      return;
+    }
+
     const map = new mapboxgl.Map({
       container: mapRef.current,
       style: "mapbox://styles/mapbox/dark-v11",
-      projection: "globe",
-      zoom: 1.4,
       center: [0, 20],
-    });
-
-    map.on("load", () => {
-      nodes.forEach((node) => {
-        const el = document.createElement("div");
-        el.className = `globe-dot ${node.status === "Online" ? "pulse" : ""}`;
-
-        new mapboxgl.Marker(el)
-          .setLngLat([node.lng, node.lat])
-          .setPopup(
-            new mapboxgl.Popup({ offset: 25 }).setHTML(`
-              <strong>${node.name}</strong><br/>
-              ${node.city}, ${node.country}<br/>
-              ${node.status} • ${node.latency} ms
-            `)
-          )
-          .addTo(map);
-      });
+      zoom: 1.2,
+      projection: "globe",
     });
 
     return () => map.remove();
-  }, [nodes]);
+  }, []);
 
-  return <div ref={mapRef} style={{ height: "520px", width: "100%" }} />;
+  return <div ref={mapRef} style={{ width: "100%", height: "100%" }} />;
 }

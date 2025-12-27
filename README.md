@@ -36,6 +36,8 @@ This MVP focuses on delivering a **clean, interactive world map and globe view**
 ---
 
 ## 🚀 Getting Started (Local Development)
+_Last updated: v1 deployment sync_
+
 
 ```bash
 npm install

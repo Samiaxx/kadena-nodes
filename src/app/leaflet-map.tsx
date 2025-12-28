@@ -1,74 +1,86 @@
 "use client";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 
-// Fix Leaflet marker icons (VERY IMPORTANT for Next.js)
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+/* ---------------- TYPES ---------------- */
 
-// ---------------- TYPES ----------------
 export type NodeData = {
-  id: string;
+  id: number;
   name: string;
   type: string;
   status: "online" | "offline";
   region: string;
-  latency: number;
+  latency?: number;
   lat: number;
   lng: number;
 };
 
-// ---------------- COMPONENT ----------------
-export default function LeafletMap({ nodes }: { nodes: NodeData[] }) {
+type Props = {
+  nodes: NodeData[];
+};
+
+/* ---------------- SVG ICON FACTORY ---------------- */
+
+const createIcon = (color: "green" | "red") =>
+  L.divIcon({
+    className: "",
+    html: `
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="${color}">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+        <circle cx="12" cy="9" r="2.5" fill="white"/>
+      </svg>
+    `,
+    iconSize: [26, 26],
+    iconAnchor: [13, 26],
+    popupAnchor: [0, -22],
+  });
+
+/* ---------------- COMPONENT ---------------- */
+
+export default function LeafletMap({ nodes }: Props) {
   return (
-    <div style={{ width: "100%", height: "520px", borderRadius: "12px" }}>
+    <div style={{ height: "520px", width: "100%", borderRadius: "12px" }}>
       <MapContainer
         center={[20, 0]}
         zoom={2}
         scrollWheelZoom
-        style={{ width: "100%", height: "100%" }}
+        style={{ height: "100%", width: "100%" }}
       >
-        {/* DARK / BLACK MAP TILE */}
+        {/* DARK MAP */}
         <TileLayer
-          attribution="&copy; OpenStreetMap & Carto"
+          attribution="© CartoDB"
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
 
-        {/* NODE MARKERS */}
         {nodes.map((node) => (
-          <Marker key={node.id} position={[node.lat, node.lng]}>
+          <Marker
+            key={node.id}
+            position={[node.lat, node.lng]}
+            icon={createIcon(node.status === "online" ? "green" : "red")}
+          >
             <Popup>
-              <div style={{ fontSize: "13px", lineHeight: "1.6" }}>
-                <strong>{node.name}</strong>
-                <br />
-                <span>ID:</span> {node.id}
-                <br />
-                <span>Type:</span> {node.type}
-                <br />
-                <span>Status:</span>{" "}
-                <span
-                  style={{
-                    color:
-                      node.status === "online" ? "#22c55e" : "#ef4444",
-                    fontWeight: 600,
-                  }}
-                >
-                  {node.status}
-                </span>
-                <br />
-                <span>Region:</span> {node.region}
-                <br />
-                <span>Latency:</span> {node.latency} ms
-              </div>
+              <strong>{node.name}</strong>
+              <br />
+              ID: {node.id}
+              <br />
+              Type: {node.type}
+              <br />
+              Status:{" "}
+              <span
+                style={{
+                  color: node.status === "online" ? "green" : "red",
+                  fontWeight: "bold",
+                }}
+              >
+                {node.status}
+              </span>
+              <br />
+              Region: {node.region}
+              <br />
+              Latency:{" "}
+              {node.latency ? `${node.latency} ms` : "N/A"}
             </Popup>
           </Marker>
         ))}

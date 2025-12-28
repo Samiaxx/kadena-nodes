@@ -1,103 +1,72 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import LeafletMap from "@/components/LeafletMap";
 
-const LeafletMap = dynamic(() => import("./leaflet-map"), {
-  ssr: false,
-});
+export type NodeStatus = "online" | "offline";
 
-/* ---------- TYPES ---------- */
-
-type NodeStatus = "online" | "offline";
-
-type Node = {
-  id: string;
+export type Node = {
+  id: number;
   name: string;
-  type: string;
-  status: NodeStatus;
   lat: number;
   lng: number;
   region: string;
+  status: NodeStatus;
+  type: string;
+  latency: number;
 };
 
-/* ---------- DATA ---------- */
-
 const NODES: Node[] = [
-  { id: "1", name: "US West", type: "Validator", status: "online", lat: 37.77, lng: -122.41, region: "North America" },
-  { id: "2", name: "US East", type: "Validator", status: "online", lat: 40.71, lng: -74.00, region: "North America" },
-  { id: "3", name: "London", type: "Full Node", status: "online", lat: 51.50, lng: -0.12, region: "Europe" },
-  { id: "4", name: "Paris", type: "Full Node", status: "offline", lat: 48.85, lng: 2.35, region: "Europe" },
-  { id: "5", name: "India", type: "Validator", status: "offline", lat: 20.59, lng: 78.96, region: "Asia" },
-  { id: "6", name: "Japan", type: "Full Node", status: "online", lat: 35.67, lng: 139.65, region: "Asia" },
-  { id: "7", name: "Australia", type: "Validator", status: "online", lat: -33.86, lng: 151.20, region: "Oceania" },
-  { id: "8", name: "Brazil", type: "Full Node", status: "offline", lat: -23.55, lng: -46.63, region: "South America" },
-  { id: "9", name: "Nigeria", type: "Full Node", status: "online", lat: 9.08, lng: 8.67, region: "Africa" },
-  { id: "10", name: "South Africa", type: "Validator", status: "online", lat: -30.55, lng: 22.93, region: "Africa" },
+  { id: 1, name: "USA West", lat: 37.77, lng: -122.41, region: "North America", status: "online", type: "Validator", latency: 40 },
+  { id: 2, name: "USA East", lat: 40.71, lng: -74.0, region: "North America", status: "online", type: "Validator", latency: 50 },
+  { id: 3, name: "Germany", lat: 52.52, lng: 13.4, region: "Europe", status: "online", type: "Full Node", latency: 35 },
+  { id: 4, name: "UK", lat: 51.5, lng: -0.12, region: "Europe", status: "offline", type: "Validator", latency: 0 },
+  { id: 5, name: "India", lat: 28.61, lng: 77.2, region: "Asia", status: "offline", type: "Validator", latency: 0 },
+  { id: 6, name: "Japan", lat: 35.68, lng: 139.69, region: "Asia", status: "online", type: "Full Node", latency: 60 },
+  { id: 7, name: "Nigeria", lat: 9.08, lng: 8.67, region: "Africa", status: "online", type: "Full Node", latency: 70 },
+  { id: 8, name: "South Africa", lat: -30.56, lng: 22.94, region: "Africa", status: "online", type: "Validator", latency: 65 },
+  { id: 9, name: "Brazil", lat: -15.78, lng: -47.93, region: "South America", status: "offline", type: "Full Node", latency: 0 },
+  { id: 10, name: "Australia", lat: -33.86, lng: 151.2, region: "Oceania", status: "online", type: "Validator", latency: 80 },
 ];
 
 export default function Page() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
-  const [region, setRegion] = useState("All");
+  const [statusFilter, setStatusFilter] = useState<"all" | NodeStatus>("all");
+  const [regionFilter, setRegionFilter] = useState("all");
 
-  const filtered = useMemo(() => {
-    if (region === "All") return NODES;
-    return NODES.filter((n) => n.region === region);
-  }, [region]);
+  const filteredNodes = NODES.filter((node) => {
+    const statusMatch = statusFilter === "all" || node.status === statusFilter;
+    const regionMatch = regionFilter === "all" || node.region === regionFilter;
+    return statusMatch && regionMatch;
+  });
 
-  const online = filtered.filter((n) => n.status === "online").length;
-  const regions = new Set(filtered.map((n) => n.region)).size;
+  const nodesToShow = filteredNodes.length ? filteredNodes : NODES;
 
   return (
-    <div className={`min-h-screen ${theme === "dark" ? "bg-[#0b1020] text-white" : "bg-white text-black"}`}>
-      <div className="p-6">
-        <h1 className="text-3xl font-bold">Kadena Nexus</h1>
-        <p className="opacity-70">Global Node Map · MVP</p>
+    <main style={{ background: "#050b1a", minHeight: "100vh", color: "white" }}>
+      <header style={{ padding: "24px" }}>
+        <h1 style={{ fontSize: "32px", fontWeight: "bold" }}>Kadena Nexus</h1>
+        <p style={{ opacity: 0.8 }}>Global Node Map · MVP</p>
 
-        <div className="flex gap-3 mt-4">
-          <select
-            value={region}
-            onChange={(e) => setRegion(e.target.value)}
-            className="px-3 py-1 text-black rounded"
-          >
-            <option>All</option>
-            <option>North America</option>
-            <option>Europe</option>
-            <option>Africa</option>
-            <option>Asia</option>
-            <option>Oceania</option>
-            <option>South America</option>
+        <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
+            <option value="all">All Status</option>
+            <option value="online">Online</option>
+            <option value="offline">Offline</option>
           </select>
 
-          <button
-            onClick={() => setTheme(t => t === "dark" ? "light" : "dark")}
-            className="px-3 py-1 border rounded"
-          >
-            {theme === "dark" ? "Light Mode" : "Dark Mode"}
-          </button>
+          <select value={regionFilter} onChange={(e) => setRegionFilter(e.target.value)}>
+            <option value="all">All Regions</option>
+            <option value="North America">North America</option>
+            <option value="South America">South America</option>
+            <option value="Europe">Europe</option>
+            <option value="Africa">Africa</option>
+            <option value="Asia">Asia</option>
+            <option value="Oceania">Oceania</option>
+          </select>
         </div>
+      </header>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <Stat title="Total Nodes" value={filtered.length} />
-          <Stat title="Online" value={online} />
-          <Stat title="Regions" value={regions} />
-          <Stat title="Avg Latency" value="82 ms" />
-        </div>
-      </div>
-
-      {/* MAP MUST HAVE HEIGHT */}
-      <div className="h-[600px]">
-        <LeafletMap nodes={filtered} theme={theme} />
-      </div>
-    </div>
-  );
-}
-
-function Stat({ title, value }: { title: string; value: number | string }) {
-  return (
-    <div className="bg-black/20 rounded p-4">
-      <div className="text-sm opacity-70">{title}</div>
-      <div className="text-2xl font-semibold">{value}</div>
-    </div>
+      <LeafletMap nodes={nodesToShow} />
+    </main>
   );
 }

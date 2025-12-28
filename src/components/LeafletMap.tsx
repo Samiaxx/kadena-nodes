@@ -1,42 +1,66 @@
 "use client";
 
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Node } from "../app/page";
+import { Node } from "@/app/page";
 
-export default function LeafletMap({
-  nodes,
-  theme,
-}: {
+type Props = {
   nodes: Node[];
-  theme: "dark" | "light";
-}) {
-  return (
-    <MapContainer center={[20, 0]} zoom={2} style={{ height: "520px", width: "100%" }}>
-      <TileLayer
-        url={
-          theme === "dark"
-            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        }
-      />
+};
 
-      {nodes.map((n) => (
-        <CircleMarker
-          key={n.id}
-          center={[n.lat, n.lng]}
-          radius={8}
-          pathOptions={{ color: n.status === "online" ? "lime" : "red" }}
-        >
-          <Popup>
-            <strong>{n.name}</strong><br />
-            ID: {n.id}<br />
-            Type: {n.type}<br />
-            Status: {n.status}<br />
-            Region: {n.region}
-          </Popup>
-        </CircleMarker>
-      ))}
-    </MapContainer>
+const greenIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+const redIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+export default function LeafletMap({ nodes }: Props) {
+  return (
+    <div style={{ height: "75vh", width: "100%" }}>
+      <MapContainer
+        center={[20, 0]}
+        zoom={2}
+        style={{ height: "100%", width: "100%" }}
+      >
+        <TileLayer
+          attribution="© OpenStreetMap"
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        />
+
+        {nodes.map((node) => (
+          <Marker
+            key={node.id}
+            position={[node.lat, node.lng]}
+            icon={node.status === "online" ? greenIcon : redIcon}
+          >
+            <Popup>
+              <strong>{node.name}</strong>
+              <br />
+              ID: {node.id}
+              <br />
+              Type: {node.type}
+              <br />
+              Status:{" "}
+              <span style={{ color: node.status === "online" ? "green" : "red" }}>
+                {node.status}
+              </span>
+              <br />
+              Region: {node.region}
+              <br />
+              Latency: {node.latency ? `${node.latency} ms` : "N/A"}
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    </div>
   );
 }

@@ -3,51 +3,35 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { NodeType } from "./page";
+import { NodeType } from "../app/page";
 
-type Props = {
-  nodes: NodeType[];
-  theme: "light" | "dark";
-};
+const icon = (color: "green" | "red") =>
+  new L.Icon({
+    iconUrl: `https://maps.google.com/mapfiles/ms/icons/${color}-dot.png`,
+    iconSize: [48, 48],
+    iconAnchor: [24, 48],
+    popupAnchor: [0, -40],
+  });
 
-const greenIcon = new L.Icon({
-  iconUrl: "/marker-green.png",
-  iconSize: [18, 36], // x2 height
-  iconAnchor: [9, 36],
-});
-
-const redIcon = new L.Icon({
-  iconUrl: "/marker-red.png",
-  iconSize: [18, 36],
-  iconAnchor: [9, 36],
-});
-
-export default function LeafletMap({ nodes, theme }: Props) {
+export default function LeafletMap({ nodes }: { nodes: NodeType[] }) {
   return (
-    <MapContainer
-      center={[20, 0]}
-      zoom={2}
-      className="h-full w-full"
-    >
-      <TileLayer
-        url={
-          theme === "light"
-            ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        }
-      />
+    <MapContainer center={[20, 0]} zoom={2} style={{ height: "100%", width: "100%" }}>
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-      {nodes.map((node) => (
+      {nodes.map((n) => (
         <Marker
-          key={node.id}
-          position={[node.lat, node.lng]}
-          icon={node.status === "online" ? greenIcon : redIcon}
+          key={n.id}
+          position={[n.lat, n.lng]}
+          icon={icon(n.status === "online" ? "green" : "red")}
         >
-          <Popup>
-            <strong>{node.name}</strong><br />
-            ID: {node.id}<br />
-            Region: {node.region}<br />
-            Status: {node.status}
+          <Popup minWidth={260}>
+            <strong>{n.name}</strong>
+            <br />
+            ID: {n.id}
+            <br />
+            Status: {n.status.toUpperCase()}
+            <br />
+            Region: {n.region}
           </Popup>
         </Marker>
       ))}

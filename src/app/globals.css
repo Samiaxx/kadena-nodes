@@ -57,3 +57,28 @@ body {
   border-radius: 10px;
   margin-bottom: 10px;
 }
+.globe-node {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(0,0,0,0.6);
+  border: 2px solid white;
+}
+
+.node-tooltip {
+  min-width: 220px;
+  padding: 12px;
+  font-size: 14px;
+  background: rgba(15,15,25,0.95);
+  color: #fff;
+  border-radius: 10px;
+  line-height: 1.6;
+}
+
+.node-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #38bdf8;
+}
